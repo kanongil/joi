@@ -253,6 +253,25 @@ describe('number', () => {
             expect(value).to.equal(1);
         });
 
+        it('converts a bigint to a number', { skip: !global.BigInt }, async () => {
+
+            const value = await Joi.number().validate(BigInt(123));
+            expect(value).to.equal(123);
+        });
+
+        it('errors on too large bigint conversion', { skip: !global.BigInt }, async () => {
+
+            const huge = BigInt(1) << BigInt(Math.log2(Number.MAX_VALUE) + 1);
+
+            const err = await expect(Joi.number().validate(huge)).to.reject('"value" contains an invalid value');
+            expect(err.details).to.equal([{
+                message: '"value" contains an invalid value',
+                path: [],
+                type: 'any.invalid',
+                context: { value: Infinity, invalids: [Infinity, -Infinity], label: 'value', key: undefined }
+            }]);
+        });
+
         it('errors on null', async () => {
 
             const err = await expect(Joi.number().validate(null)).to.reject('"value" must be a number');
